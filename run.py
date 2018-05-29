@@ -24,7 +24,7 @@ def get_avalon():
     driver = webdriver.Chrome(chrome_options=chrome_options)
     driver.get('https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-at-mission-bay')
 
-    time.sleep(5)
+    time.sleep(10)
 
     elem = driver.find_element_by_partial_link_text('2 bedrooms')
     elem.click()
@@ -33,7 +33,7 @@ def get_avalon():
     elem = driver.find_element_by_partial_link_text('2 bedrooms')
     elem.click()
 
-    time.sleep(2)
+    time.sleep(5)
 
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     driver.close()
