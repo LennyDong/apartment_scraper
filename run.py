@@ -242,3 +242,7 @@ def package_and_send(fetch, company):
 package_and_send(get_avalon, 'Avalon')
 package_and_send(get_beale, 'Beale')
 package_and_send(get_edgewater, 'Edgewater')
+
+f = open('last_run', 'w')
+f.write(datetime.now())
+f.close()
