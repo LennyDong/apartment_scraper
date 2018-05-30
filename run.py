@@ -51,7 +51,7 @@ def get_avalon():
         floor_plan = floor_plan.find_all('img')[0]['src'][:-3] + '500'
 
         for unit in units:
-            apartment_number = uint.find_all('td')[1].text
+            apartment_number = unit.find_all('td')[1].text
             move_in = unit.find_all('td')[2].text
             price = unit.find_all('span', {'class': 'new-price'})[0].text
 
@@ -239,10 +239,6 @@ def package_and_send(fetch, company):
 
 # send_mail('Available apartments as of {0}'.format(datetime.now().strftime('%m/%d/%Y')), content)
 
-package_and_send(get_avalon, 'Avalon')
+# package_and_send(get_avalon, 'Avalon')
 package_and_send(get_beale, 'Beale')
-package_and_send(get_edgewater, 'Edgewater')
-
-f = open('last_run', 'w')
-f.write(datetime.now())
-f.close()
+git pupackage_and_send(get_edgewater, 'Edgewater')
