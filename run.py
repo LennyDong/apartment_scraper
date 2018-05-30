@@ -14,7 +14,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-RECEIPIENTS = ['dong.lenny@gmail.com', 'michael.chen@berkeley.edu', 'acdelapaz@berkeley.edu']
+# RECEIPIENTS = ['dong.lenny@gmail.com', 'michael.chen@berkeley.edu', 'acdelapaz@berkeley.edu']
+RECEIPIENTS = ['dong.lenny@gmail.com']
 
 def get_avalon():
     listings = []
