@@ -239,6 +239,6 @@ def package_and_send(fetch, company):
 
 # send_mail('Available apartments as of {0}'.format(datetime.now().strftime('%m/%d/%Y')), content)
 
-# package_and_send(get_avalon, 'Avalon')
+package_and_send(get_avalon, 'Avalon')
 package_and_send(get_beale, 'Beale')
 package_and_send(get_edgewater, 'Edgewater')
