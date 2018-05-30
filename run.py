@@ -6,6 +6,7 @@ from datetime import datetime
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from email.utils import COMMASPACE, formatdate
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -47,16 +48,45 @@ def get_avalon():
         header_text = header.text
         bedrooms = header_text.split(' bedrooms, ')[0]
         size = header_text.split('(')[1][:-2]
-        floor_plan = floor_plan.find_all('img')[0]['src']
+        floor_plan = floor_plan.find_all('img')[0]['src'][:-3] + '500'
 
         for unit in units:
+            apartment_number = uint.find_all('td')[1].text
             move_in = unit.find_all('td')[2].text
             price = unit.find_all('span', {'class': 'new-price'})[0].text
 
-            listing = Listing('Avalon', bedrooms, price, size, datetime.strptime(move_in, '%m/%d/%Y'), floor_plan)
+            listing = Listing('Avalon', bedrooms, price, size, datetime.strptime(move_in, '%m/%d/%Y'), floor_plan, apartment_number)
             listings.append(listing)
 
     return listings
+
+def get_beale():
+    listing_obj = []
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('headless')
+    chrome_options.add_argument('no-sandbox')
+    driver = webdriver.Chrome(chrome_options=chrome_options)
+    root = 'https://www.udr.com'
+    driver.get('{0}/san-francisco-bay-area-apartments/san-francisco/388-beale/apartments-pricing/?beds=2'.format(root))
+    time.sleep(5)
+
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    driver.close()
+
+    all_listings = soup.find(id='listings-a')
+    listings = all_listings.findChildren()[0].find_all('li', recursive=False)
+
+    for listing in listings:
+        attributes = listing.findChildren()[0].find_all('li', recursive=False)
+        floor_plan = '{0}{1}'.format(root, attributes[0]['data-zoom-src'])
+        apartment_number = 'Apartment {0}'.format(attributes[1].find('h3').text.split('Apartment ')[1])
+        bedrooms = 2
+        size = '{0} Sq. Ft.'.format(attributes[1].find_all('li')[2].text.split('Sq. Ft: ')[1])
+        price = attributes[2].find('li', {'class': 'price'}).find_all('div')[1].find('span').find('span').text
+        date = datetime.strptime(attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text, '%m/%d/%Y')
+        listing_obj.append(Listing('Beale', bedrooms, price, size, date, floor_plan, apartment_number))
+
+    return listing_obj
 
 
 def wait_for(condition_function):
@@ -77,30 +107,38 @@ def send_mail(subject, content):
     server.starttls()
     server.login(send_from, 'AfxDingDong')
 
-    msg = MIMEMultipart()
-    msg['From'] = send_from
-    msg['To'] = COMMASPACE.join(RECEIPIENTS)
-    msg['Date'] = formatdate(localtime=True)
-    msg['Subject'] = subject
+    msg_root = MIMEMultipart('related')
+    msg_root['From'] = send_from
+    msg_root['To'] = COMMASPACE.join(RECEIPIENTS)
+    msg_root['Date'] = formatdate(localtime=True)
+    msg_root['Subject'] = subject
+    msg_root.preamble = 'This is a multi-part message in MIME format.'
 
-    msg.attach(MIMEText(content))
+    msg_alternative = MIMEMultipart('alternative')
+    msg_root.attach(msg_alternative)
 
-    server.sendmail(send_from, ['dong.lenny@gmail.com'], msg.as_string())
+    msg_text = MIMEText('This is the alternative plain text message.')
+    msg_alternative.attach(msg_text)
+
+    msg_text = MIMEText(content, 'html')
+    msg_alternative.attach(msg_text)
+
+    server.sendmail(send_from, ['dong.lenny@gmail.com'], msg_root.as_string())
     server.close()
 
-    print 'hello'
 
 class Listing:
-    def __init__(self, company, bedrooms, price, size, move_in, floor_plan):
-        self.floor_plan = floor_plan
+    def __init__(self, company, bedrooms, price, size, move_in, floor_plan, apartment_number):
+        self.floor_plan = floor_plan.replace(' ', '%20')
         self.price = price
         self.bedrooms = bedrooms
         self.move_in = move_in
         self.size = size
         self.company = company
+        self.apartment_number = apartment_number
 
     def __str__(self):
-        return '{0}\n{1} Bedrooms\n{2}\n{3}\nmove-in date: {4}\n{5}'.format(self.company, self.bedrooms, self.price, self.size, self.move_in.strftime('%m/%d/%Y'), self.floor_plan)
+        return '<h2>{0}</h2><big>{6}</big><br><big>{1} Bedrooms</big><br><big>{2}</big><br><big>{3}</big><br><big>Move-in date: {4}</big><br><img src="{5}">'.format(self.company, self.bedrooms, self.price, self.size, self.move_in.strftime('%m/%d/%Y'), self.floor_plan, self.apartment_number)
 
     def __repr__(self):
         return '{0}, {1} Bedrooms, ${2}, {3} sq ft, move-in date: {4}'.format(self.company, self.bedrooms, self.price, self.size, self.move_in.strftime('%m/%d/%Y'))
@@ -120,15 +158,29 @@ class wait_for_page_load(object):
     def __exit__(self, *_):
         wait_for(self.page_has_loaded)
 
+def package_and_send(fetch, company):
+    listings = fetch()
+    listings.sort(key=lambda x: x.move_in, reverse=True)
+
+    content = ''
+    for listing in listings:
+        content += str(listing)
+        content += '<br><br><br>'
+
+    send_mail('Available {1} apartments as of {0}'.format(datetime.now().strftime('%m/%d/%Y'), company), content)
+    print '{0} finished'.format(company)
 
 
-avalon_listings = get_avalon()
+# avalon_listings = get_avalon()
+#
+# avalon_listings.sort(key=lambda x: x.move_in, reverse=True)
+#
+# content = ''
+# for listing in avalon_listings:
+#     content += str(listing)
+#     content += '<br><br><br>'
 
-avalon_listings.sort(key=lambda x: x.move_in, reverse=True)
+# send_mail('Available apartments as of {0}'.format(datetime.now().strftime('%m/%d/%Y')), content)
 
-content = ''
-for listing in avalon_listings:
-    content += str(listing)
-    content += '\n\n\n'
-
-send_mail('Available apartments as of {0}'.format(datetime.now().strftime('%m/%d/%Y')), content)
+# package_and_send(get_avalon, 'Avalon')
+package_and_send(get_beale, 'Beale')
