@@ -23,15 +23,14 @@ def get_avalon():
     chrome_options.add_argument('no-sandbox')
     driver = webdriver.Chrome(chrome_options=chrome_options)
     # driver = webdriver.Chrome()
-    driver.get('https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-at-mission-bay')
+    driver.get('https://www.avaloncommunities.com/california/san-francisco-apartments/avalon-at-mission-bay/')
+    time.sleep(5)
+    elem_1 = driver.find_element_by_partial_link_text('Apartments + Pricing')
+    elem_1.click()
+    time.sleep(5)
 
-    # time.sleep(10)
-
+    # WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.CLASS_NAME, 'loading-overlay')))
     elem = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, '2 bedrooms')))
-    elem.click()
-    elem = driver.find_element_by_partial_link_text('1 bedroom')
-    elem.click()
-    elem = driver.find_element_by_partial_link_text('2 bedrooms')
     elem.click()
     # new_elem = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'fa fa-caret-down')))
 
