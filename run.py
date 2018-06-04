@@ -222,5 +222,5 @@ package_and_send(get_beale, 'Beale')
 package_and_send(get_edgewater, 'Edgewater')
 
 f = open('last_run', 'w')
-f.write(str(datetime.now()))
+f.write('{0}\n'.format(str(datetime.now())))
 f.close()
