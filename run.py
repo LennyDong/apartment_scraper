@@ -83,39 +83,14 @@ def get_beale():
         bedrooms = 2
         size = '{0} Sq. Ft.'.format(attributes[1].find_all('li')[2].text.split('Sq. Ft: ')[1])
         price = attributes[2].find('li', {'class': 'price'}).find_all('div')[1].find('span').find('span').text
-        date = datetime.strptime(attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text, '%m/%d/%Y')
+        date = attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text
+        if date.lower() == 'now':
+            date = datetime.now()
+        else:
+            date = datetime.strptime(date, '%m/%d/%Y')
         listing_obj.append(Listing('Beale', bedrooms, price, size, date, floor_plan, apartment_number))
 
     return listing_obj
-
-def get_beale():
-    listing_obj = []
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('headless')
-    chrome_options.add_argument('no-sandbox')
-    driver = webdriver.Chrome(chrome_options=chrome_options)
-    root = 'https://www.udr.com'
-    driver.get('{0}/san-francisco-bay-area-apartments/san-francisco/388-beale/apartments-pricing/?beds=2'.format(root))
-    time.sleep(5)
-
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    driver.close()
-
-    all_listings = soup.find(id='listings-a')
-    listings = all_listings.findChildren()[0].find_all('li', recursive=False)
-
-    for listing in listings:
-        attributes = listing.findChildren()[0].find_all('li', recursive=False)
-        floor_plan = '{0}{1}'.format(root, attributes[0]['data-zoom-src'])
-        apartment_number = 'Apartment {0}'.format(attributes[1].find('h3').text.split('Apartment ')[1])
-        bedrooms = 2
-        size = '{0} Sq. Ft.'.format(attributes[1].find_all('li')[2].text.split('Sq. Ft: ')[1])
-        price = attributes[2].find('li', {'class': 'price'}).find_all('div')[1].find('span').find('span').text
-        date = datetime.strptime(attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text, '%m/%d/%Y')
-        listing_obj.append(Listing('Beale', bedrooms, price, size, date, floor_plan, apartment_number))
-
-    return listing_obj
-
 
 def get_edgewater():
     listing_obj = []
@@ -140,11 +115,14 @@ def get_edgewater():
         bedrooms = 2
         size = '{0} Sq. Ft.'.format(attributes[1].find_all('li')[2].text.split('Sq. Ft: ')[1])
         price = attributes[2].find('li', {'class': 'price'}).find_all('div')[1].find('span').find('span').text
-        date = datetime.strptime(attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text, '%m/%d/%Y')
+        date = attributes[2].find('li', {'class': 'available'}).find_all('div')[1].find('span').text
+        if date.lower() == 'now':
+            date = datetime.now()
+        else:
+            date = datetime.strptime(date, '%m/%d/%Y')
         listing_obj.append(Listing('Edgewater', bedrooms, price, size, date, floor_plan, apartment_number))
 
     return listing_obj
-
 
 def wait_for(condition_function):
     start_time = time.time()
